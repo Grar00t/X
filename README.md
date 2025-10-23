@@ -1,2 +1,1 @@
-# X
-Offline Sovereign AI Agent for private self-hosted environments.
+Self-hosted offline AI agent designed for autonomy and privacy.
