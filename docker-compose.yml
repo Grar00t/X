@@ -1,0 +1,16 @@
+version: "3.9"
+services:
+  actions-api:
+    build: ./ops/actions-api
+    env_file: [./ops/actions-api/.env.example]
+    networks: [gra_net]
+    restart: unless-stopped
+  nginx:
+    image: nginx:1.27-alpine
+    depends_on: [actions-api]
+    volumes:
+      - ./ops/nginx/actions-api.conf:/etc/nginx/conf.d/actions-api.conf:ro
+    ports: ["80:80","443:443"]
+    networks: [gra_net]
+    restart: unless-stopped
+networks: { gra_net: { driver: bridge } }
