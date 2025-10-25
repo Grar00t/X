@@ -1,0 +1,37 @@
+[Unit]
+Description=GrATech Actions API (Hardened)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=/opt/gra/actions-api/.env
+WorkingDirectory=/opt/gra/actions-api
+ExecStart=/usr/bin/node server.cjs
+Restart=on-failure
+RestartSec=3
+
+User=gra
+Group=gra
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+ReadWritePaths=/opt/gra/actions-api
+AmbientCapabilities=
+CapabilityBoundingSet=
+LockPersonality=true
+MemoryDenyWriteExecute=true
+
+LimitNOFILE=4096
+TasksMax=512
+Nice=0
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

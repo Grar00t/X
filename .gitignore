@@ -205,3 +205,11 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# GrA Uploads
+uploads/
+ops/actions-api/uploads/
+
+# Node modules and lock files
+node_modules/
+package-lock.json
