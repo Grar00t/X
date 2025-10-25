@@ -56,7 +56,13 @@ const upload = multer({
     fileSize: parseInt(process.env.MAX_FILE_SIZE || '524288000', 10) // Default 500MB
   },
   fileFilter: function (req, file, cb) {
-    // Accept all file types, but you can add restrictions here
+    // Block potentially dangerous file types
+    const dangerousExtensions = ['.exe', '.bat', '.cmd', '.sh', '.php', '.asp', '.aspx', '.jsp'];
+    const ext = path.extname(file.originalname).toLowerCase();
+    
+    if (dangerousExtensions.includes(ext)) {
+      return cb(new Error('File type not allowed'), false);
+    }
     cb(null, true);
   }
 });
@@ -110,8 +116,7 @@ app.post('/v1/upload', requireJWT, upload.single('file'), (req, res) => {
       originalName: req.file.originalname,
       filename: req.file.filename,
       size: req.file.size,
-      mimetype: req.file.mimetype,
-      path: req.file.path
+      mimetype: req.file.mimetype
     }
   });
 });
@@ -126,8 +131,7 @@ app.post('/v1/upload/multiple', requireJWT, upload.array('files', 10), (req, res
     originalName: file.originalname,
     filename: file.filename,
     size: file.size,
-    mimetype: file.mimetype,
-    path: file.path
+    mimetype: file.mimetype
   }));
   
   res.json({
@@ -135,6 +139,25 @@ app.post('/v1/upload/multiple', requireJWT, upload.array('files', 10), (req, res
     count: files.length,
     files: files
   });
+});
+
+// Error handling middleware for multer errors
+app.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(413).json({ error: 'file_too_large', maxSize: process.env.MAX_FILE_SIZE || '524288000' });
+    }
+    if (err.code === 'LIMIT_FILE_COUNT') {
+      return res.status(400).json({ error: 'too_many_files', maxFiles: 10 });
+    }
+    return res.status(400).json({ error: 'upload_error', message: err.message });
+  }
+  
+  if (err.message === 'File type not allowed') {
+    return res.status(400).json({ error: 'invalid_file_type', message: 'File type not allowed' });
+  }
+  
+  next(err);
 });
 
 // Serve OpenAPI if present

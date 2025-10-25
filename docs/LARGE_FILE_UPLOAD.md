@@ -68,8 +68,7 @@ curl -X POST http://127.0.0.1:7070/v1/upload/multiple \
       "originalName": "file1.pdf",
       "filename": "files-1729836000000-123456789.pdf",
       "size": 2048576,
-      "mimetype": "application/pdf",
-      "path": "./uploads/files-1729836000000-123456789.pdf"
+      "mimetype": "application/pdf"
     }
   ]
 }
@@ -122,13 +121,16 @@ def upload_large_file(file_path, jwt_token):
 | `no_file_uploaded` | لم يتم رفع أي ملف | تأكد من إرسال الملف في حقل `file` |
 | `missing_token` | رمز JWT مفقود | أضف رأس المصادقة `Authorization: Bearer TOKEN` |
 | `invalid_token` | رمز JWT غير صالح | تأكد من صحة الرمز وأنه لم ينتهي |
-| `File too large` | الملف كبير جداً | قلّل حجم الملف أو زد `MAX_FILE_SIZE` |
+| `file_too_large` | الملف كبير جداً | قلّل حجم الملف أو زد `MAX_FILE_SIZE` |
+| `invalid_file_type` | نوع الملف غير مسموح | تجنب الملفات القابلة للتنفيذ (.exe, .sh, .bat, إلخ) |
+| `too_many_files` | عدد كبير من الملفات | لا يمكن رفع أكثر من 10 ملفات دفعة واحدة |
 
 ### الأمان
 - جميع نقاط رفع الملفات محمية بمصادقة JWT
 - يتم حفظ الملفات في مجلد آمن محدد في `UPLOAD_DIR`
 - أسماء الملفات فريدة لتجنب التضارب
-- يمكن تحديد أنواع الملفات المسموح بها عن طريق تعديل `fileFilter` في الكود
+- يتم حظر أنواع الملفات الخطرة (.exe, .bat, .sh, .php, إلخ)
+- لا يتم إرجاع مسارات الملفات الكاملة في الاستجابة لحماية بنية الخادم
 
 ---
 
@@ -172,8 +174,7 @@ curl -X POST http://127.0.0.1:7070/v1/upload \
     "originalName": "large-file.zip",
     "filename": "file-1729836000000-123456789.zip",
     "size": 104857600,
-    "mimetype": "application/zip",
-    "path": "./uploads/file-1729836000000-123456789.zip"
+    "mimetype": "application/zip"
   }
 }
 ```
@@ -197,10 +198,13 @@ curl -X POST http://127.0.0.1:7070/v1/upload/multiple \
 | `no_file_uploaded` | No file was uploaded | Ensure the file is sent in the `file` field |
 | `missing_token` | JWT token is missing | Add the `Authorization: Bearer TOKEN` header |
 | `invalid_token` | JWT token is invalid | Verify the token is correct and not expired |
-| `File too large` | File exceeds size limit | Reduce file size or increase `MAX_FILE_SIZE` |
+| `file_too_large` | File exceeds size limit | Reduce file size or increase `MAX_FILE_SIZE` |
+| `invalid_file_type` | File type not allowed | Avoid executable files (.exe, .sh, .bat, etc.) |
+| `too_many_files` | Too many files | Cannot upload more than 10 files at once |
 
 ### Security
 - All upload endpoints are protected with JWT authentication
 - Files are saved in a secure directory specified by `UPLOAD_DIR`
 - Unique filenames prevent conflicts
-- File type restrictions can be added by modifying the `fileFilter` in the code
+- Dangerous file types are blocked (.exe, .bat, .sh, .php, etc.)
+- Full file paths are not returned in responses to protect server structure
