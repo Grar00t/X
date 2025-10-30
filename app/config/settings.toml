@@ -1,0 +1,5 @@
+# GrA settings
+sovereign = true
+use_llama = false
+# llama_cpp_exe = "C:/path/to/llama-cli.exe"
+# model_path   = "C:/path/to/model.gguf"
